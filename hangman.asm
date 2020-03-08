@@ -10,7 +10,7 @@ INCLUDE Irvine32.inc
 .stack 4096
 ExitProcess proto,dwExitCode:dword
 
-;Hannah TODO: block commenting, intro, outro, and play again operation
+;Hannah TODO: block commenting, intro, outro, and play again operation. Test for further bugs
 
 
 
