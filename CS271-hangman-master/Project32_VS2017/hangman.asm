@@ -463,6 +463,14 @@ pop		ebp
 ret		24
 userinput	ENDP
 
+
+;**********************************
+;Description: Checks if the user has won
+;Receives: none
+;Returns: position on the stack
+;Preconditions: Array of progress string, word length
+;Registers changed: edp, esp, eax, ebx, ecx, ebp, esi, al, bl
+;**********************************
 checkwin	PROC
 push	ebp
 mov		ebp, esp
