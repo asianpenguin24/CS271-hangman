@@ -44,6 +44,7 @@ ExitProcess proto,dwExitCode:dword
 	verloren	BYTE	"You killed him!",0
 	livesleft	BYTE	"LIVES REMAINING: ",0
 	letused		BYTE	"Letters used: ",0
+	error		BYTE	"You already guessed that letter. Enter again.",0
 
 	;constants
 	word1		BYTE	"stack",0		;4
@@ -409,7 +410,7 @@ printused	ENDP
 ;Receives: none
 ;Returns: position on the stack
 ;Preconditions: Array of used characters, guessword, word length, round number, pushed to stack
-;Registers changed: edp, esp, eax, ebx, ecx, ebp, esi
+;Registers changed: edp, esp, eax, ebx, ecx, ebp, esi, al, bl
 ;**********************************
 userinput	PROC
 push	ebp
@@ -419,8 +420,21 @@ mov		edi, [ebp+20]	;gameword
 mov		ecx, [ebp+16]	;wordlength
 mov		eax, [ebp+24]	;round number
 add		esi, eax
+getinput:
 call	readchar		;user input stored in al
 mov		bl, al
+compareguessed:
+	mov		al, [edi]
+	cmp		bl, al
+	je		errorhandle
+
+	jmp		continput
+errorhandle:
+	mov		edx,OFFSET error
+	call	writestring
+	call	crlf
+	jmp		getinput
+continput:
 mov		[esi], bl	;move the input char into an array of used input chars
 mov		esi, [ebp+8]	;progress string/array of chars
 add		esi, ecx
@@ -434,7 +448,7 @@ compareinput:
 		add		matches, 1
 		sub		esi, ecx
 		mov		[esi], bl		;replaces the matched char into progress string
-		add		esi, ecx		;this does a fucky wucky for some reason
+		add		esi, ecx		
 	endcomp:
 	add		edi, 1
 	loop	compareinput
