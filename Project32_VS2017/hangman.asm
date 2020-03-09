@@ -34,6 +34,7 @@ ExitProcess proto,dwExitCode:dword
 
 	;intro
 	intro1		BYTE	"WELCOME TO HANGMAN!",0
+	intro2		BYTE	"Press a letter to guess. Do not press enter, the screen will refresh automatically.",0
 
 	;outro
 	outro1		BYTE	"THANKS FOR PLAYING!",0
@@ -99,28 +100,38 @@ main PROC
 	push	OFFSET		livesleft	;16
 	push	OFFSET		gewinnen	;12
 	push	OFFSET		verloren	;8
+	call	introduction
 	call	gameplay
 
 invoke ExitProcess,0			;exit to operating system
 main ENDP
 
 ;**********************************
-;Description:
-;Receives:
-;Returns:
-;Preconditions:
-;Registers changed:
+;Description: Introduces the hangman program.
+;Receives: none
+;Returns: none
+;Preconditions: none
+;Registers changed: EDX
 ;**********************************
-;introduction PROC
-;	;push address of ebp and mov contents of stack
-;	push	ebp
-;	mov		ebp, esp
-;	
-;	pop		ebp
-;	ret		;space used
-;introduction ENDP
+introduction PROC
+mov		edx, OFFSET intro1
+call	writestring
+call	crlf
 
-;generate array
+mov		edx, OFFSET intro2
+call	writestring
+call	crlf
+
+ret
+introduction ENDP
+
+;**********************************
+;Description: Fills the array of possible guess words
+;Receives: none
+;Returns: position on the stack
+;Preconditions: words and wordlist pushed to stack
+;Registers changed: edp, esp, edi, edx
+;**********************************
 fillwords	PROC
 push	ebp
 mov		ebp, esp
@@ -151,7 +162,13 @@ pop		ebp
 ret		24
 fillwords	ENDP
 
-;get word used for game from word array
+;**********************************
+;Description: Randomly chooses a word to be guessed and moves it to edx.
+;Receives: none
+;Returns: position on the stack
+;Preconditions: word and wordlist pushed to stack
+;Registers changed: edp, esp, edi, edx
+;**********************************
 getword		PROC
 push	ebp
 mov		ebp, esp
@@ -166,14 +183,20 @@ mov		edx, [edi]
 mov		esi, [ebp+8]	;chosen word
 mov		[esi], edx		;move the string into ebx
 
-call	WriteString		;----------------------------------------------------temp debug
+call	WriteString		;----------------------------------------------------DEBUG: Prints guessword.
 call	crlf
 
 pop		ebp
 ret		8
 getword		ENDP
 
-;count number of characters in a string
+;**********************************
+;Description: Counts the # of letters in a string.
+;Receives: none
+;Returns: position on the stack
+;Preconditions: wordlength variable and guessword pushed to stack
+;Registers changed: edp, esp, edi, ebp, eax, ebx
+;**********************************
 getlength	PROC
 push	ebp
 mov		ebp, esp
@@ -197,7 +220,13 @@ pop		ebp
 ret		8
 getlength ENDP
 
-;move spaces into array for user to guess
+;**********************************
+;Description: Fills the array of the word to be guessed, shown as dashes.
+;Receives: none
+;Returns: position on the stack
+;Preconditions: array to hold the guessword and length pushed to stack
+;Registers changed: edp, esp, edi, edx
+;**********************************
 fillspaces	PROC
 push	ebp
 mov		ebp, esp
@@ -218,7 +247,19 @@ pop		ebp
 ret		12
 fillspaces	ENDP
 
-;user actually plays game
+;**********************************
+;Description: User takes one turn. Includes:
+;					Initializing lives and round #, printing
+;					Print hangman and word progress
+;					Check how much progress has been made to determine win/lose state
+;					Print previously used letters
+;					Gets user input of one letter
+;					Prints endgame and win conditions
+;Receives: none
+;Returns: position on the stack
+;Preconditions: letters used, lives left, win/lose status messages pushed to stack
+;Registers changed: edp, esp, edx, eax, ebp
+;**********************************
 gameplay	PROC
 push	ebp
 mov		ebp, esp
@@ -258,7 +299,8 @@ call	writestring
 push	OFFSET	usedchars	;12
 push	numround			;8
 call	printused
-;------------------------------get user character input
+call	crlf
+;------------------------------get user character input //does not check if letter has been used before
 push	numlives			;28
 push	numround			;24
 push	gameword			;20
@@ -286,7 +328,13 @@ pop		ebp
 ret		16
 gameplay	ENDP
 
-;prints the hangman ascii art according to lives left
+;**********************************
+;Description: Prints Hangman ASCII art based on lives used.
+;Receives: none
+;Returns: position on the stack
+;Preconditions: number of lives used pushed to stack
+;Registers changed: edp, esp, eax, ebx, ecx, ebp
+;**********************************
 printman	PROC
 push	ebp
 mov		ebp, esp
@@ -305,7 +353,13 @@ pop		ebp
 ret		4
 printman	ENDP
 
-;prints the progress/letters filled
+;**********************************
+;Description: Prints guessing word progress.
+;Receives: none
+;Returns: position on the stack
+;Preconditions: Guessing (dashed) word and word length pushed to stack
+;Registers changed: edp, ebp, esp, edi, ecx
+;**********************************
 printprog	PROC
 push	ebp
 mov		ebp, esp
@@ -326,7 +380,13 @@ pop		ebp
 ret		8
 printprog	ENDP
 
-;prints used letters into string
+;**********************************
+;Description: Prints letters previously guessed.
+;Receives: none
+;Returns: position on the stack
+;Preconditions: Used letters array and reoudn number pushed to stack
+;Registers changed: ebp, esp, edi, ecx
+;**********************************
 printused	PROC
 push	ebp
 mov		ebp, esp
@@ -344,7 +404,13 @@ pop		ebp
 ret		8
 printused	ENDP
 
-;does a lot of stuff
+;**********************************
+;Description: Recieves and processes user input.
+;Receives: none
+;Returns: position on the stack
+;Preconditions: Array of used characters, guessword, word length, round number, pushed to stack
+;Registers changed: edp, esp, eax, ebx, ecx, ebp, esi
+;**********************************
 userinput	PROC
 push	ebp
 mov		ebp, esp
